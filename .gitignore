@@ -14,7 +14,6 @@ build_venv_android/
 
 # IDE
 .idea/
-.vscode/
 *.swp
 *.swo
 
@@ -22,6 +21,7 @@ build_venv_android/
 IMPROVEMENTS.md
 docs/superpowers/
 
+temp_auto_push.bat
 # Database
 *.db
 *.db-shm
@@ -46,3 +46,5 @@ Thumbs.db
 
 # Temp audio
 *.wav
+.gitignore
+branch_structure.json
