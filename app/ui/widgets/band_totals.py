@@ -10,22 +10,24 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 
+from app.eeg.band_spec import BAND_NAMES_BY_KEY, format_range
 from app.ui.theme import ICONS_AVAILABLE, C, F, Icons, S, StyledButton
 
 BANDS = ["delta", "theta", "alpha1", "alpha2", "beta1", "beta2", "gamma1", "gamma2"]
 GROUPS = ["delta", "theta", "alpha", "beta", "gamma"]
 
 # (key, display name, color group) — sub-bands share their group's colour,
-# mirroring the frequency-band chart palette.
+# mirroring the frequency-band chart palette. Names come from band_spec so the
+# table and the other band surfaces stay in agreement.
 _BAND_META = [
-    ("delta", "Delta", "delta"),
-    ("theta", "Theta", "theta"),
-    ("alpha1", "Alpha 1", "alpha"),
-    ("alpha2", "Alpha 2", "alpha"),
-    ("beta1", "Beta 1", "beta"),
-    ("beta2", "Beta 2", "beta"),
-    ("gamma1", "Gamma 1", "gamma"),
-    ("gamma2", "Gamma 2", "gamma"),
+    ("delta", BAND_NAMES_BY_KEY["delta"], "delta"),
+    ("theta", BAND_NAMES_BY_KEY["theta"], "theta"),
+    ("alpha1", BAND_NAMES_BY_KEY["alpha1"], "alpha"),
+    ("alpha2", BAND_NAMES_BY_KEY["alpha2"], "alpha"),
+    ("beta1", BAND_NAMES_BY_KEY["beta1"], "beta"),
+    ("beta2", BAND_NAMES_BY_KEY["beta2"], "beta"),
+    ("gamma1", BAND_NAMES_BY_KEY["gamma1"], "gamma"),
+    ("gamma2", BAND_NAMES_BY_KEY["gamma2"], "gamma"),
 ]
 _GROUP_META = [
     ("delta", "Delta", "delta"),
@@ -42,7 +44,7 @@ _GROUP_COLORS = {
     "theta": (0.2, 0.5, 0.9, 1.0),
     "delta": (0.4, 0.2, 0.8, 1.0),
 }
-_ROW_H = dp(22)
+_ROW_H = dp(34)
 _W_NAME = dp(58)
 _W_POWER = dp(60)
 _W_PCT = dp(44)
@@ -83,7 +85,8 @@ def band_rows(
     grand = sum(vals.values())
     rows = [
         {"key": k, "name": n, "group": g, "total": vals[k],
-         "share": (vals[k] / grand) if grand > 0 else 0.0}
+         "share": (vals[k] / grand) if grand > 0 else 0.0,
+         "range": format_range(k, grouped=(mode == "grouped"))}
         for k, n, g in meta
     ]
     if sort_by in ("power", "percent"):
@@ -244,8 +247,17 @@ class BandTotalsView(BoxLayout):
         row = BoxLayout(orientation="horizontal", size_hint_y=None, height=_ROW_H,
                         spacing=S.GAP_SM)
         name_lbl = Label(text=r["name"], font_size=F.SMALL, color=C.TEXT_SECONDARY,
-                         halign="left", valign="middle", size_hint_x=None, width=_W_NAME)
+                         halign="left", valign="top", size_hint_x=None, width=_W_NAME,
+                         size_hint_y=None, height=dp(15))
         name_lbl.bind(size=name_lbl.setter("text_size"))
+        range_lbl = Label(text=r["range"], font_size=F.TINY, color=C.TEXT_MUTED,
+                          halign="left", valign="bottom", size_hint_x=None, width=_W_NAME,
+                          size_hint_y=None, height=dp(12))
+        range_lbl.bind(size=range_lbl.setter("text_size"))
+        name_box = BoxLayout(orientation="vertical", spacing=0,
+                             size_hint_x=None, width=_W_NAME)
+        name_box.add_widget(name_lbl)
+        name_box.add_widget(range_lbl)
 
         track = BoxLayout(orientation="horizontal")
         bar = Bar(_GROUP_COLORS[r["group"]], size_hint_x=r["share"])
@@ -259,7 +271,7 @@ class BandTotalsView(BoxLayout):
                         halign="right", valign="middle", size_hint_x=None, width=_W_PCT)
         pct_lbl.bind(size=pct_lbl.setter("text_size"))
 
-        row.add_widget(name_lbl)
+        row.add_widget(name_box)
         row.add_widget(track)
         row.add_widget(power_lbl)
         row.add_widget(pct_lbl)
